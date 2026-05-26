@@ -1,35 +1,17 @@
 // ============================================================
 //  Supabase Cloud Sync — AI Architect Journey
-//  Handles GitHub OAuth + cross-device progress persistence
+//  Handles email/password auth + cross-device progress sync
 // ============================================================
 //
 //  SETUP (one-time, ~10 minutes):
 //
 //  1. Create a free project at https://supabase.com
 //
-//  2. In the Supabase SQL editor, run this migration:
+//  2. In the Supabase SQL editor, run the migration in SUPABASE_SETUP.md
 //
-//     create table public.user_progress (
-//       id          uuid primary key default gen_random_uuid(),
-//       user_id     uuid references auth.users not null unique,
-//       state       jsonb not null default '{}',
-//       updated_at  timestamptz not null default now()
-//     );
-//     alter table public.user_progress enable row level security;
-//     create policy "own_read"   on public.user_progress for select using (auth.uid() = user_id);
-//     create policy "own_insert" on public.user_progress for insert with check (auth.uid() = user_id);
-//     create policy "own_update" on public.user_progress for update using (auth.uid() = user_id);
-//     create or replace function public.handle_updated_at()
-//       returns trigger as $$ begin new.updated_at = now(); return new; end; $$ language plpgsql;
-//     create trigger on_progress_updated before update on public.user_progress
-//       for each row execute procedure public.handle_updated_at();
-//
-//  3. Enable GitHub OAuth:
-//     Supabase Dashboard → Authentication → Providers → GitHub
-//     Create a GitHub OAuth App at https://github.com/settings/applications/new:
-//       - Homepage URL: your GitHub Pages URL (e.g. https://yourname.github.io/ai-architect-journey/)
-//       - Callback URL: https://<your-supabase-project>.supabase.co/auth/v1/callback
-//     Paste Client ID + Secret into Supabase dashboard.
+//  3. Enable Email provider:
+//     Supabase Dashboard → Authentication → Providers → Email (ON by default)
+//     Optional: Authentication → Settings → disable "Confirm email" for instant sign-in.
 //
 //  4. Copy your project credentials from:
 //     Supabase Dashboard → Settings → API
@@ -37,8 +19,8 @@
 //
 // ============================================================
 
-const SUPABASE_URL      = 'YOUR_SUPABASE_URL';       // e.g. https://abcdefgh.supabase.co
-const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';  // safe to commit — RLS protects data
+const SUPABASE_URL      = 'https://ycmfmublxveyidgkindt.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_3n5p04tilD3joJFFp1nZBw_NsT22UK5';
 
 const DB_TABLE          = 'user_progress';
 const SYNC_DEBOUNCE_MS  = 2500;   // batch rapid XP/badge changes into one push
@@ -105,14 +87,26 @@ class SupabaseSync {
     return () => { this._authCallbacks = this._authCallbacks.filter(c => c !== callback); };
   }
 
-  // Triggers GitHub OAuth flow — page redirects then returns after auth.
-  async signInWithGitHub() {
+  async signInWithEmail(email, password) {
+    if (!this._client) throw new Error('Supabase not initialized');
+    const { error } = await this._client.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+  }
+
+  async signUpWithEmail(email, password, displayName) {
+    if (!this._client) throw new Error('Supabase not initialized');
+    const { error } = await this._client.auth.signUp({
+      email,
+      password,
+      options: { data: { display_name: displayName || email.split('@')[0] } },
+    });
+    if (error) throw error;
+  }
+
+  async resetPassword(email) {
     if (!this._client) throw new Error('Supabase not initialized');
     const redirectTo = window.location.href.split('?')[0].split('#')[0];
-    const { error } = await this._client.auth.signInWithOAuth({
-      provider: 'github',
-      options: { redirectTo },
-    });
+    const { error } = await this._client.auth.resetPasswordForEmail(email, { redirectTo });
     if (error) throw error;
   }
 
@@ -169,20 +163,16 @@ class SupabaseSync {
     }
   }
 
-  // GitHub profile info helpers
   getUserDisplayName() {
     if (!this._user) return null;
     return (
-      this._user.user_metadata?.full_name  ||
-      this._user.user_metadata?.user_name  ||
-      this._user.email?.split('@')[0]      ||
-      'GitHub User'
+      this._user.user_metadata?.display_name ||
+      this._user.email?.split('@')[0]        ||
+      'Architect'
     );
   }
 
-  getUserAvatar() {
-    return this._user?.user_metadata?.avatar_url || null;
-  }
+  getUserAvatar() { return null; }
 
   // Update the small sync status chip in the header
   _setSyncStatus(status) {

@@ -61,18 +61,15 @@ async function initAuth() {
   const btn = document.getElementById('cloud-sync-btn');
   if (!btn) return;
 
-  // Register auth state listener — fires on sign-in, sign-out, token refresh
   supabaseSync.onAuthChange(async (event, user) => {
     updateAuthButton(user);
-
     if (event === 'SIGNED_IN' && user) {
+      closeAuthModal();
       const synced = await loadCloudState();
-      // Auto-fill name from GitHub if not yet set
       if (!store.get('user.name')) {
-        const ghName = supabaseSync.getUserDisplayName();
-        if (ghName) store.set('user.name', ghName);
+        const name = supabaseSync.getUserDisplayName();
+        if (name) store.set('user.name', name);
         updateHeaderStats();
-        // Close welcome modal if open
         const wm = document.getElementById('welcome-modal');
         if (wm) wm.remove();
       }
@@ -83,36 +80,23 @@ async function initAuth() {
     }
   });
 
-  // If a session already exists (returning user / post-OAuth redirect)
   if (supabaseSync.isReady()) {
     updateAuthButton(supabaseSync.getUser());
     await loadCloudState();
-    // Auto-fill name from GitHub profile if missing
     if (!store.get('user.name')) {
-      const ghName = supabaseSync.getUserDisplayName();
-      if (ghName) { store.set('user.name', ghName); updateHeaderStats(); }
+      const name = supabaseSync.getUserDisplayName();
+      if (name) { store.set('user.name', name); updateHeaderStats(); }
     }
   } else {
     updateAuthButton(null);
   }
 
-  // Button click: sign in or sign out
-  btn.addEventListener('click', async () => {
-    if (supabaseSync.isReady()) {
-      showSignOutConfirm();
-    } else {
-      btn.disabled = true;
-      btn.textContent = 'Redirecting…';
-      try {
-        await supabaseSync.signInWithGitHub();
-        // Page will redirect to GitHub — execution stops here
-      } catch (err) {
-        showToast('Sign-in failed: ' + err.message, 'error');
-        updateAuthButton(null);
-        btn.disabled = false;
-      }
-    }
+  btn.addEventListener('click', () => {
+    if (supabaseSync.isReady()) showSignOutConfirm();
+    else openAuthModal();
   });
+
+  initAuthModal();
 }
 
 // Pull cloud state and merge: higher XP wins.
@@ -158,20 +142,16 @@ function updateAuthButton(user) {
   if (!btn) return;
 
   if (user) {
-    const avatar = supabaseSync.getUserAvatar();
-    const name   = supabaseSync.getUserDisplayName();
-    btn.innerHTML = `
-      ${avatar ? `<img src="${avatar}" alt="" class="auth-avatar">` : '☁️ '}
-      <span class="auth-name">${name}</span>
-      <span class="auth-signout-hint">▾</span>
-    `;
+    const name    = supabaseSync.getUserDisplayName();
+    const initial = (name || '?')[0].toUpperCase();
+    btn.innerHTML = `<span class="auth-avatar auth-avatar--initial">${initial}</span><span class="auth-name">${name}</span><span class="auth-signout-hint">▾</span>`;
     btn.className = 'btn-auth btn-auth--signed-in';
     btn.title     = 'Signed in — click to sign out';
     if (ind) ind.style.display = '';
   } else {
     btn.innerHTML = '☁️ Sync Progress';
     btn.className = 'btn-auth btn-auth--signed-out';
-    btn.title     = 'Sign in with GitHub to sync progress across devices';
+    btn.title     = 'Sign in to sync progress across devices';
     btn.disabled  = false;
     if (ind) { ind.textContent = ''; ind.style.display = 'none'; }
   }
@@ -206,6 +186,120 @@ async function confirmSignOut() {
   const modal = document.getElementById('signout-modal');
   if (modal) modal.remove();
   await supabaseSync.signOut();
+}
+
+// ============================================================
+//  Auth Modal — Email / Password
+// ============================================================
+
+function openAuthModal(defaultTab = 'signin') {
+  const modal = document.getElementById('auth-modal');
+  if (!modal) return;
+  switchAuthTab(defaultTab);
+  ['signin-email','signin-password','signup-name','signup-email','signup-password','reset-email']
+    .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  ['signin-error','signup-error','signup-success','reset-error','reset-success']
+    .forEach(id => { const el = document.getElementById(id); if (el) { el.style.display = 'none'; el.textContent = ''; } });
+  modal.classList.add('modal--open');
+  document.body.style.overflow = 'hidden';
+  setTimeout(() => { const f = modal.querySelector('.auth-panel:not(.auth-panel--hidden) .auth-input'); if (f) f.focus(); }, 50);
+}
+
+function closeAuthModal() {
+  const modal = document.getElementById('auth-modal');
+  if (modal) { modal.classList.remove('modal--open'); document.body.style.overflow = ''; }
+}
+
+function switchAuthTab(tabName) {
+  document.querySelectorAll('.auth-tab').forEach(t => {
+    const active = t.dataset.tab === tabName;
+    t.classList.toggle('auth-tab--active', active);
+    t.setAttribute('aria-selected', active);
+  });
+  document.querySelectorAll('.auth-panel').forEach(p => {
+    p.classList.toggle('auth-panel--hidden', p.id !== `panel-${tabName}`);
+  });
+  setTimeout(() => { const f = document.querySelector(`#panel-${tabName} .auth-input`); if (f) f.focus(); }, 50);
+}
+
+function initAuthModal() {
+  const modal = document.getElementById('auth-modal');
+  if (!modal) return;
+  document.getElementById('auth-modal-close')?.addEventListener('click', closeAuthModal);
+  modal.addEventListener('click', e => { if (e.target === modal) closeAuthModal(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && modal.classList.contains('modal--open')) closeAuthModal(); });
+  modal.addEventListener('click', e => {
+    const target = e.target.closest('[data-tab]');
+    if (target && (target.classList.contains('auth-tab') || target.classList.contains('auth-link'))) switchAuthTab(target.dataset.tab);
+  });
+  document.getElementById('signin-submit')?.addEventListener('click', handleSignIn);
+  document.getElementById('signin-password')?.addEventListener('keydown', e => { if (e.key === 'Enter') handleSignIn(); });
+  document.getElementById('signup-submit')?.addEventListener('click', handleSignUp);
+  document.getElementById('signup-password')?.addEventListener('keydown', e => { if (e.key === 'Enter') handleSignUp(); });
+  document.getElementById('reset-submit')?.addEventListener('click', handleResetPassword);
+  document.getElementById('reset-email')?.addEventListener('keydown', e => { if (e.key === 'Enter') handleResetPassword(); });
+}
+
+async function handleSignIn() {
+  const email    = document.getElementById('signin-email')?.value.trim();
+  const password = document.getElementById('signin-password')?.value;
+  const errorEl  = document.getElementById('signin-error');
+  const btn      = document.getElementById('signin-submit');
+  if (!email || !password) { setAuthMessage(errorEl, 'Please enter your email and password.', 'error'); return; }
+  btn.disabled = true; btn.textContent = 'Signing in…';
+  setAuthMessage(errorEl, '', 'clear');
+  try {
+    await supabaseSync.signInWithEmail(email, password);
+  } catch (err) {
+    setAuthMessage(errorEl, err.message || 'Sign-in failed. Check your email and password.', 'error');
+    btn.disabled = false; btn.textContent = 'Sign In';
+  }
+}
+
+async function handleSignUp() {
+  const name      = document.getElementById('signup-name')?.value.trim();
+  const email     = document.getElementById('signup-email')?.value.trim();
+  const password  = document.getElementById('signup-password')?.value;
+  const errorEl   = document.getElementById('signup-error');
+  const successEl = document.getElementById('signup-success');
+  const btn       = document.getElementById('signup-submit');
+  if (!email || !password) { setAuthMessage(errorEl, 'Email and password are required.', 'error'); return; }
+  if (password.length < 6) { setAuthMessage(errorEl, 'Password must be at least 6 characters.', 'error'); return; }
+  btn.disabled = true; btn.textContent = 'Creating account…';
+  setAuthMessage(errorEl, '', 'clear'); setAuthMessage(successEl, '', 'clear');
+  try {
+    await supabaseSync.signUpWithEmail(email, password, name);
+    setAuthMessage(successEl, 'Account created! Check your email to confirm, then sign in.', 'success');
+    btn.disabled = false; btn.textContent = 'Create Account';
+  } catch (err) {
+    setAuthMessage(errorEl, err.message || 'Sign-up failed. Try a different email.', 'error');
+    btn.disabled = false; btn.textContent = 'Create Account';
+  }
+}
+
+async function handleResetPassword() {
+  const email     = document.getElementById('reset-email')?.value.trim();
+  const errorEl   = document.getElementById('reset-error');
+  const successEl = document.getElementById('reset-success');
+  const btn       = document.getElementById('reset-submit');
+  if (!email) { setAuthMessage(errorEl, 'Please enter your email address.', 'error'); return; }
+  btn.disabled = true; btn.textContent = 'Sending…';
+  setAuthMessage(errorEl, '', 'clear'); setAuthMessage(successEl, '', 'clear');
+  try {
+    await supabaseSync.resetPassword(email);
+    setAuthMessage(successEl, 'Reset email sent! Check your inbox.', 'success');
+    btn.disabled = false; btn.textContent = 'Send Reset Email';
+  } catch (err) {
+    setAuthMessage(errorEl, err.message || 'Could not send reset email.', 'error');
+    btn.disabled = false; btn.textContent = 'Send Reset Email';
+  }
+}
+
+function setAuthMessage(el, message, type) {
+  if (!el) return;
+  if (!message || type === 'clear') { el.style.display = 'none'; el.textContent = ''; return; }
+  el.textContent = message;
+  el.style.display = 'block';
 }
 
 function renderTimeline() {
@@ -642,14 +736,12 @@ function showWelcomeModal(syncEnabled = false) {
   const existing = document.getElementById('welcome-modal');
   if (existing) existing.remove();
 
-  const githubOption = syncEnabled ? `
+  const syncOption = syncEnabled ? `
     <div class="welcome-divider">
       <span>or sign in to sync across devices</span>
     </div>
-    <button class="btn-github-signin" onclick="welcomeGitHubSignIn()" style="width:100%;padding:.75rem;display:flex;align-items:center;justify-content:center;gap:.6rem;background:#24292f;color:#fff;border:none;border-radius:var(--radius-sm);font-size:1rem;cursor:pointer;margin-top:.25rem;font-family:var(--font)">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
-      Continue with GitHub
-    </button>
+    <button class="btn btn--outline" onclick="document.getElementById('welcome-modal').remove(); openAuthModal();"
+            style="width:100%;padding:.75rem;margin-top:.25rem">☁️ Sign In / Create Account</button>
     <p style="font-size:.75rem;color:var(--text-muted);margin-top:.5rem">Progress syncs across all your devices automatically</p>
   ` : '';
 
@@ -673,7 +765,7 @@ function showWelcomeModal(syncEnabled = false) {
       <button class="btn btn--primary" style="width:100%;padding:.75rem" onclick="submitWelcomeName()">
         🚀 Begin My Journey
       </button>
-      ${githubOption}
+      ${syncOption}
     </div>
   `;
   document.body.appendChild(overlay);
@@ -682,18 +774,6 @@ function showWelcomeModal(syncEnabled = false) {
   if (input) {
     input.focus();
     input.addEventListener('keydown', e => { if (e.key === 'Enter') submitWelcomeName(); });
-  }
-}
-
-async function welcomeGitHubSignIn() {
-  const btn = document.querySelector('.btn-github-signin');
-  if (btn) { btn.disabled = true; btn.textContent = 'Redirecting to GitHub…'; }
-  try {
-    await supabaseSync.signInWithGitHub();
-    // Page redirects — execution stops here
-  } catch (err) {
-    showToast('Sign-in failed: ' + err.message, 'error');
-    if (btn) { btn.disabled = false; btn.textContent = 'Continue with GitHub'; }
   }
 }
 

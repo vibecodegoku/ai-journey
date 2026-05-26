@@ -57,7 +57,7 @@
       <div class="header-actions">
         <!-- Cloud sync: hidden until Supabase is configured -->
         <span class="sync-indicator" id="sync-indicator" style="display:none"></span>
-        <button class="btn-auth btn-auth--signed-out" id="cloud-sync-btn" title="Sign in with GitHub to sync progress across devices">
+        <button class="btn-auth btn-auth--signed-out" id="cloud-sync-btn" title="Sign in to sync progress across devices">
           ☁️ Sync Progress
         </button>
         <button class="btn-icon" id="theme-toggle" title="Toggle theme">🌙</button>
@@ -491,6 +491,51 @@
     </p>
   </div>
 </footer>
+
+<!-- ==============================
+     AUTH MODAL (Email / Password)
+     ============================== -->
+<div class="modal-overlay" id="auth-modal" role="dialog" aria-modal="true" aria-labelledby="auth-modal-title">
+  <div class="modal-box" style="max-width:440px">
+    <div class="modal-header">
+      <h2 class="modal-title" id="auth-modal-title">☁️ Sync Progress</h2>
+      <button class="modal-close" id="auth-modal-close" aria-label="Close">✕</button>
+    </div>
+    <div class="auth-tabs" role="tablist">
+      <button class="auth-tab auth-tab--active" id="tab-signin" role="tab" aria-selected="true" aria-controls="panel-signin" data-tab="signin">Sign In</button>
+      <button class="auth-tab" id="tab-signup" role="tab" aria-selected="false" aria-controls="panel-signup" data-tab="signup">Create Account</button>
+      <button class="auth-tab" id="tab-reset" role="tab" aria-selected="false" aria-controls="panel-reset" data-tab="reset">Forgot Password</button>
+    </div>
+    <!-- Sign In -->
+    <div class="auth-panel" id="panel-signin" role="tabpanel" aria-labelledby="tab-signin">
+      <p style="font-size:.85rem;color:var(--text-secondary);margin-bottom:1.25rem">Sign in to sync your learning progress across devices automatically.</p>
+      <div class="auth-field"><label class="auth-label" for="signin-email">Email</label><input class="auth-input" id="signin-email" type="email" autocomplete="email" placeholder="you@example.com"></div>
+      <div class="auth-field"><label class="auth-label" for="signin-password">Password</label><input class="auth-input" id="signin-password" type="password" autocomplete="current-password" placeholder="••••••••"></div>
+      <div id="signin-error" class="auth-error" style="display:none"></div>
+      <button class="btn btn--primary" id="signin-submit" style="width:100%;padding:.75rem;margin-top:.5rem">Sign In</button>
+      <p style="font-size:.75rem;color:var(--text-muted);margin-top:1rem;text-align:center">No account? <button class="auth-link" data-tab="signup">Create one</button> · <button class="auth-link" data-tab="reset">Forgot password?</button></p>
+    </div>
+    <!-- Sign Up -->
+    <div class="auth-panel auth-panel--hidden" id="panel-signup" role="tabpanel" aria-labelledby="tab-signup">
+      <p style="font-size:.85rem;color:var(--text-secondary);margin-bottom:1.25rem">Create a free account to sync your progress across all your devices.</p>
+      <div class="auth-field"><label class="auth-label" for="signup-name">Display Name</label><input class="auth-input" id="signup-name" type="text" autocomplete="name" placeholder="Your name" maxlength="30"></div>
+      <div class="auth-field"><label class="auth-label" for="signup-email">Email</label><input class="auth-input" id="signup-email" type="email" autocomplete="email" placeholder="you@example.com"></div>
+      <div class="auth-field"><label class="auth-label" for="signup-password">Password</label><input class="auth-input" id="signup-password" type="password" autocomplete="new-password" placeholder="At least 6 characters" minlength="6"></div>
+      <div id="signup-error" class="auth-error" style="display:none"></div>
+      <div id="signup-success" class="auth-success" style="display:none"></div>
+      <button class="btn btn--primary" id="signup-submit" style="width:100%;padding:.75rem;margin-top:.5rem">Create Account</button>
+    </div>
+    <!-- Forgot Password -->
+    <div class="auth-panel auth-panel--hidden" id="panel-reset" role="tabpanel" aria-labelledby="tab-reset">
+      <p style="font-size:.85rem;color:var(--text-secondary);margin-bottom:1.25rem">Enter your email and we'll send a password reset link.</p>
+      <div class="auth-field"><label class="auth-label" for="reset-email">Email</label><input class="auth-input" id="reset-email" type="email" autocomplete="email" placeholder="you@example.com"></div>
+      <div id="reset-error" class="auth-error" style="display:none"></div>
+      <div id="reset-success" class="auth-success" style="display:none"></div>
+      <button class="btn btn--primary" id="reset-submit" style="width:100%;padding:.75rem;margin-top:.5rem">Send Reset Email</button>
+      <p style="font-size:.75rem;color:var(--text-muted);margin-top:1rem;text-align:center">Remembered it? <button class="auth-link" data-tab="signin">Back to sign in</button></p>
+    </div>
+  </div>
+</div>
 
 <!-- ==============================
      PROJECT DETAIL MODAL

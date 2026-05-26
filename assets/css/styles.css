@@ -1315,3 +1315,24 @@ li { margin: 0.25rem 0; color: var(--text-secondary); }
   .modal-box { max-height: 95vh; }
   .salary-grid { grid-template-columns: 1fr 1fr; }
 }
+
+/* ============================================================
+   Auth Modal — Email / Password
+   ============================================================ */
+
+.auth-tabs { display:flex; border-bottom:1px solid var(--border); padding:0 1.5rem; }
+.auth-tab { padding:.75rem 1rem; font-size:.82rem; font-weight:600; font-family:var(--font); color:var(--text-muted); background:none; border:none; border-bottom:2px solid transparent; cursor:pointer; transition:color var(--transition),border-color var(--transition); margin-bottom:-1px; }
+.auth-tab:hover { color:var(--text-primary); }
+.auth-tab--active { color:var(--accent-blue); border-bottom-color:var(--accent-blue); }
+.auth-panel { padding:1.5rem; }
+.auth-panel--hidden { display:none; }
+.auth-field { margin-bottom:1rem; }
+.auth-label { display:block; font-size:.78rem; font-weight:600; color:var(--text-secondary); margin-bottom:.35rem; text-transform:uppercase; letter-spacing:.04em; }
+.auth-input { width:100%; padding:.65rem .9rem; background:var(--bg-tertiary); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text-primary); font-size:.9rem; font-family:var(--font); outline:none; transition:border-color var(--transition),box-shadow var(--transition); box-sizing:border-box; }
+.auth-input:focus { border-color:var(--accent-blue); box-shadow:0 0 0 3px rgba(59,130,246,.15); }
+.auth-input::placeholder { color:var(--text-muted); }
+.auth-error { font-size:.82rem; color:var(--accent-red); background:rgba(239,68,68,.08); border:1px solid rgba(239,68,68,.25); border-radius:var(--radius-sm); padding:.5rem .75rem; margin-top:.5rem; }
+.auth-success { font-size:.82rem; color:var(--accent-green); background:rgba(16,185,129,.08); border:1px solid rgba(16,185,129,.25); border-radius:var(--radius-sm); padding:.5rem .75rem; margin-top:.5rem; }
+.auth-link { background:none; border:none; padding:0; color:var(--accent-blue); font-size:inherit; font-family:var(--font); cursor:pointer; text-decoration:underline; }
+.auth-link:hover { color:var(--accent-purple); }
+.auth-avatar--initial { width:18px; height:18px; border-radius:50%; background:var(--accent-blue); color:#fff; font-size:.65rem; font-weight:700; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; }
