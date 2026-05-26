@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="6-month gamified AI Solution Architect learning path with multi-cloud certifications, hands-on projects, and gamification">
+  <title>AI Architect Journey — 6-Month Certification Roadmap</title>
+  <link rel="stylesheet" href="assets/css/styles.css">
+  <!-- Supabase JS SDK (loaded before app scripts; safe to keep even without credentials) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+</head>
+<body>
+
+<!-- ==============================
+     HEADER
+     ============================== -->
+<header class="site-header">
+  <div class="container">
+    <div class="header-inner">
+      <a class="site-logo" href="#">🧠 AI Architect Journey</a>
+
+      <nav class="header-nav">
+        <a class="nav-link" href="#section-timeline">Timeline</a>
+        <a class="nav-link" href="#section-projects">Projects</a>
+        <a class="nav-link" href="#section-certs">Certifications</a>
+        <a class="nav-link" href="#section-courses">Courses</a>
+        <a class="nav-link" href="#section-badges">Badges</a>
+        <a class="nav-link" href="#section-sysdesign">Interview Prep</a>
+        <a class="nav-link" href="#section-salary">Salary</a>
+      </nav>
+
+      <div class="header-stats">
+        <div class="stat-item">
+          <span class="stat-label">Name</span>
+          <span class="stat-value" id="user-name-display">—</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Level</span>
+          <span class="stat-value" id="stat-level">—</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">XP</span>
+          <span class="stat-value" id="stat-xp">0</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Streak</span>
+          <span class="stat-value" id="stat-streak">0</span>
+        </div>
+        <div class="level-bar-container">
+          <div class="level-bar">
+            <div class="level-bar-fill" id="level-progress-bar"></div>
+          </div>
+          <span style="font-size:0.65rem;color:var(--text-muted)" id="level-progress-text"></span>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <!-- Cloud sync: hidden until Supabase is configured -->
+        <span class="sync-indicator" id="sync-indicator" style="display:none"></span>
+        <button class="btn-auth btn-auth--signed-out" id="cloud-sync-btn" title="Sign in with GitHub to sync progress across devices">
+          ☁️ Sync Progress
+        </button>
+        <button class="btn-icon" id="theme-toggle" title="Toggle theme">🌙</button>
+        <button class="btn-icon" id="edit-profile" title="Edit profile">✏️</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ==============================
+     HERO / DASHBOARD
+     ============================== -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-grid">
+      <div>
+        <h1 class="hero-title">
+          Become an <span class="gradient">AI Certified</span><br>Solution Architect
+        </h1>
+        <p class="hero-subtitle">
+          6 months · 12 hands-on projects · Multi-cloud (AWS + GCP + Azure) · From zero to Architect
+        </p>
+
+        <div class="hero-stats-row">
+          <div class="hero-stat">
+            <span class="hero-stat-value" id="hero-projects">0</span>
+            <span class="hero-stat-label">Projects Done</span>
+          </div>
+          <div class="hero-stat">
+            <span class="hero-stat-value" id="hero-certs">0</span>
+            <span class="hero-stat-label">Certifications</span>
+          </div>
+          <div class="hero-stat">
+            <span class="hero-stat-value" id="hero-xp">0</span>
+            <span class="hero-stat-label">Total XP</span>
+          </div>
+        </div>
+
+        <div class="milestone-banner">
+          🎯 <span id="next-milestone">Loading your next milestone…</span>
+        </div>
+      </div>
+
+      <div class="progress-ring-container">
+        <div class="progress-ring-wrap">
+          <svg class="progress-ring-svg" viewBox="0 0 120 120">
+            <defs>
+              <linearGradient id="ringGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color:#3b82f6"/>
+                <stop offset="100%" style="stop-color:#8b5cf6"/>
+              </linearGradient>
+            </defs>
+            <circle class="progress-ring-bg" cx="60" cy="60" r="54"/>
+            <circle class="progress-ring-fill" id="progress-ring-fill" cx="60" cy="60" r="54"/>
+          </svg>
+          <div class="ring-inner">
+            <span class="ring-pct" id="hero-progress-pct">0%</span>
+            <span class="ring-label">Complete</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==============================
+     6-MONTH TIMELINE
+     ============================== -->
+<section class="section timeline-section" id="section-timeline">
+  <div class="container">
+    <div class="section-header">
+      <h2 class="section-title">📅 6-Month Roadmap</h2>
+    </div>
+    <div class="timeline">
+      <div class="timeline-track"></div>
+      <div class="timeline-nodes" id="timeline-nodes"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ==============================
+     FILTER BAR
+     ============================== -->
+<div class="filter-bar" id="filter-bar">
+  <div class="container">
+    <div class="filter-inner">
+
+      <div class="filter-group">
+        <span class="filter-label">Cloud</span>
+        <div class="chips-row">
+          <button class="chip chip--aws" data-filter="providers" data-value="aws">AWS</button>
+          <button class="chip chip--gcp" data-filter="providers" data-value="gcp">GCP</button>
+          <button class="chip chip--azure" data-filter="providers" data-value="azure">Azure</button>
+          <button class="chip chip--hf" data-filter="providers" data-value="huggingface">🤗 HF</button>
+          <button class="chip" data-filter="providers" data-value="general">General</button>
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <span class="filter-label">Cost</span>
+        <div class="chips-row">
+          <button class="chip" data-filter="cost" data-value="free">✅ Free</button>
+          <button class="chip" data-filter="cost" data-value="paid">💳 Paid</button>
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <span class="filter-label">Topic</span>
+        <div class="chips-row">
+          <button class="chip" data-filter="categories" data-value="ml-basics">ML Basics</button>
+          <button class="chip" data-filter="categories" data-value="llms">LLMs</button>
+          <button class="chip" data-filter="categories" data-value="agents">Agents</button>
+          <button class="chip" data-filter="categories" data-value="mlops">MLOps</button>
+          <button class="chip" data-filter="categories" data-value="architecture">Architecture</button>
+        </div>
+      </div>
+
+      <div class="filter-actions">
+        <span id="filter-count" style="display:none"></span>
+        <button class="btn btn--outline" id="clear-filters" style="display:none">✕ Clear</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ==============================
+     PROJECTS
+     ============================== -->
+<section class="section" id="section-projects">
+  <div class="container">
+    <div class="section-header">
+      <h2 class="section-title">🛠 Hands-On Projects</h2>
+      <span class="section-count">13 projects (1 setup + 12 bi-weekly)</span>
+    </div>
+    <div class="cards-grid" id="projects-grid">
+      <!-- Rendered by app.js -->
+    </div>
+    <div id="no-results" style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--text-muted)">
+      No projects match the active filters. <button class="btn btn--outline" onclick="clearAllFilters()" style="margin-left:.5rem">Clear Filters</button>
+    </div>
+  </div>
+</section>
+
+<!-- ==============================
+     CERTIFICATIONS
+     ============================== -->
+<section class="section" id="section-certs">
+  <div class="container">
+    <div class="section-header">
+      <h2 class="section-title">🏆 Certifications</h2>
+      <span class="section-count">6 paid + 5 free</span>
+    </div>
+
+    <div style="background:var(--bg-tertiary);border:1px solid var(--border);border-left:3px solid var(--accent-yellow);border-radius:var(--radius-md);padding:1rem 1.25rem;margin-bottom:1.5rem;font-size:0.875rem;color:var(--text-secondary)">
+      <strong style="color:var(--accent-yellow)">⚠️ 2026 Updates:</strong>
+      AWS ML Specialty (MLS-C01) retired March 2026 — replaced by <strong>MLA-C01</strong>.
+      Azure AI-102 retires June 2026 — pursue <strong>AI-300</strong> instead.
+      New: <strong>Microsoft Agentic AI Business Solutions Architect</strong> (highest market demand 2026).
+    </div>
+
+    <div class="cards-grid" id="certs-grid">
+      <!-- Rendered by app.js -->
+    </div>
+  </div>
+</section>
+
+<!-- ==============================
+     FREE COURSES
+     ============================== -->
+<section class="section" id="section-courses">
+  <div class="container">
+    <div class="section-header">
+      <h2 class="section-title">📖 Free Courses</h2>
+      <span class="section-count">8 courses</span>
+    </div>
+    <div class="cards-grid" id="courses-grid">
+      <!-- Rendered by app.js -->
+    </div>
+  </div>
+</section>
+
+<!-- ==============================
+     YOUTUBE CHANNELS
+     ============================== -->
+<section class="section" id="section-channels">
+  <div class="container">
+    <div class="section-header">
+      <h2 class="section-title">📺 YouTube Channels</h2>
+      <span class="section-count">8 channels · +25 XP each</span>
+    </div>
+    <div class="cards-grid" id="channels-grid">
+      <!-- Rendered by app.js -->
+    </div>
+  </div>
+</section>
+
+<!-- ==============================
+     BADGES
+     ============================== -->
+<section class="section" id="section-badges">
+  <div class="container">
+    <div class="section-header">
+      <h2 class="section-title">🎖 Badge Collection</h2>
+      <span class="section-count">23 badges</span>
+    </div>
+    <div class="badges-grid" id="badges-grid">
+      <!-- Rendered by app.js -->
+    </div>
+  </div>
+</section>
+
+<!-- ==============================
+     SYSTEM DESIGN INTERVIEW PREP
+     ============================== -->
+<section class="section" id="section-sysdesign">
+  <div class="container">
+    <div class="section-header">
+      <h2 class="section-title">🏗 System Design Interview Prep</h2>
+      <span class="section-count">5 canonical questions</span>
+    </div>
+
+    <div style="background:var(--bg-tertiary);border:1px solid var(--border);border-left:3px solid var(--accent-purple);border-radius:var(--radius-md);padding:1rem 1.25rem;margin-bottom:1.5rem;font-size:0.875rem;color:var(--text-secondary)">
+      💡 These are the most common AI system design questions asked at AWS, Google, Microsoft, Accenture, and Deloitte.
+      For each: (1) clarify constraints, (2) sketch C4 context diagram, (3) detail components, (4) discuss trade-offs.
+      Use the <strong>C4 model</strong> — draw.io templates at
+      <a href="https://github.com/tobiashochguertel/c4-draw.io" target="_blank">github.com/tobiashochguertel/c4-draw.io</a>.
+    </div>
+
+    <div class="cards-grid" id="sysdesign-grid">
+      <!-- Rendered by app.js -->
+    </div>
+  </div>
+</section>
+
+<!-- ==============================
+     AI GOVERNANCE
+     ============================== -->
+<section class="section" id="section-governance">
+  <div class="container">
+    <div class="section-header">
+      <h2 class="section-title">⚖️ AI Governance & Compliance</h2>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.25rem">
+
+      <div class="card">
+        <div class="card__header">
+          <span style="font-size:1.5rem">🇪🇺</span>
+          <span class="badge badge--hot">Enforce Aug 2026</span>
+        </div>
+        <h3 class="card__title">EU AI Act</h3>
+        <p class="card__description">
+          Risk-based regulation for AI systems. Know the 4 risk categories:
+          <strong>Unacceptable</strong> (banned), <strong>High-risk</strong> (healthcare, recruitment),
+          <strong>Limited-risk</strong> (chatbots), <strong>Minimal-risk</strong> (spam filters).
+        </p>
+        <div style="margin:0.75rem 0">
+          <div class="component-chip" style="margin:0.2rem;display:inline-block">Audit trails</div>
+          <div class="component-chip" style="margin:0.2rem;display:inline-block">Bias testing</div>
+          <div class="component-chip" style="margin:0.2rem;display:inline-block">Transparency</div>
+          <div class="component-chip" style="margin:0.2rem;display:inline-block">Human oversight</div>
+        </div>
+        <div class="card__actions">
+          <a href="https://artificialintelligenceact.eu/" target="_blank" rel="noopener" class="btn btn--outline">📖 Read Act</a>
+          <button class="btn btn--primary" onclick="markGovernanceComplete()">✓ Studied</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card__header">
+          <span style="font-size:1.5rem">🔴</span>
+          <span class="badge badge--hot">New Field 2025</span>
+        </div>
+        <h3 class="card__title">LLM Red-Teaming</h3>
+        <p class="card__description">
+          Adversarially test your LLM for jailbreaks, prompt injection, data leakage, and harmful outputs.
+          Use <strong>PromptFoo</strong> (open-source) or <strong>PyRIT</strong> (Microsoft).
+        </p>
+        <div style="margin:0.75rem 0">
+          <div class="component-chip" style="margin:0.2rem;display:inline-block">PromptFoo</div>
+          <div class="component-chip" style="margin:0.2rem;display:inline-block">PyRIT</div>
+          <div class="component-chip" style="margin:0.2rem;display:inline-block">Jailbreak testing</div>
+          <div class="component-chip" style="margin:0.2rem;display:inline-block">Prompt injection</div>
+        </div>
+        <div class="card__actions">
+          <a href="https://www.promptfoo.dev/" target="_blank" rel="noopener" class="btn btn--outline">🔗 PromptFoo</a>
+          <a href="https://github.com/Azure/PyRIT" target="_blank" rel="noopener" class="btn btn--outline">🔗 PyRIT</a>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card__header">
+          <span style="font-size:1.5rem">📊</span>
+          <span class="badge badge--free">Free Tools</span>
+        </div>
+        <h3 class="card__title">Model Evaluation</h3>
+        <p class="card__description">
+          Evaluate your models for quality, fairness, and accuracy. Use <strong>RAGAS</strong> for RAG,
+          <strong>DeepEval</strong> for LLMs, <strong>SHAP</strong> for explainability.
+        </p>
+        <div style="margin:0.75rem 0">
+          <div class="component-chip" style="margin:0.2rem;display:inline-block">RAGAS</div>
+          <div class="component-chip" style="margin:0.2rem;display:inline-block">DeepEval</div>
+          <div class="component-chip" style="margin:0.2rem;display:inline-block">SHAP</div>
+          <div class="component-chip" style="margin:0.2rem;display:inline-block">LIME</div>
+        </div>
+        <div class="card__actions">
+          <a href="https://docs.ragas.io/" target="_blank" rel="noopener" class="btn btn--outline">🔗 RAGAS</a>
+          <a href="https://docs.confident-ai.com/" target="_blank" rel="noopener" class="btn btn--outline">🔗 DeepEval</a>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card__header">
+          <span style="font-size:1.5rem">💰</span>
+          <span class="badge badge--hot">New 2025–26</span>
+        </div>
+        <h3 class="card__title">FinOps for AI</h3>
+        <p class="card__description">
+          AI spend jumped 36% YoY to $85K/month average in 2025. Learn token economics,
+          batch API savings (50% cost reduction), and GPU cost optimization.
+        </p>
+        <div style="margin:0.75rem 0">
+          <div class="component-chip" style="margin:0.2rem;display:inline-block">Token budgets</div>
+          <div class="component-chip" style="margin:0.2rem;display:inline-block">Batch API</div>
+          <div class="component-chip" style="margin:0.2rem;display:inline-block">Model tiering</div>
+          <div class="component-chip" style="margin:0.2rem;display:inline-block">Cost per query</div>
+        </div>
+        <div class="card__actions">
+          <a href="https://www.finops.org/wg/finops-for-ai-overview/" target="_blank" rel="noopener" class="btn btn--outline">📖 FinOps Guide</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ==============================
+     SALARY DATA
+     ============================== -->
+<section class="section" id="section-salary">
+  <div class="container">
+    <div class="section-header">
+      <h2 class="section-title">💵 Salary Benchmarks</h2>
+      <span class="section-count">AI Solution Architect · 2025–2026</span>
+    </div>
+
+    <div style="background:var(--bg-tertiary);border:1px solid var(--border);border-left:3px solid var(--accent-green);border-radius:var(--radius-md);padding:1rem 1.25rem;margin-bottom:1.5rem;font-size:0.875rem;color:var(--text-secondary)">
+      📊 Data from Robert Half, Glassdoor, LinkedIn, and FAANG compensation reports.
+      Certifications add <strong>10–15% salary premium</strong> — more impactful in consulting/enterprise than FAANG.
+      <strong>Production AI experience outweighs any single certification</strong> at senior levels.
+    </div>
+
+    <div class="salary-grid">
+      <div class="salary-card">
+        <div class="salary-level">Entry Level (0–3 yrs)</div>
+        <div class="salary-range">$130K–$180K</div>
+        <div class="salary-note">Without certs · General ML background</div>
+      </div>
+      <div class="salary-card">
+        <div class="salary-level">Certified Entry Level</div>
+        <div class="salary-range">$150K–$210K</div>
+        <div class="salary-note">AIF-C01 + AI-300 + project portfolio</div>
+      </div>
+      <div class="salary-card">
+        <div class="salary-level">Mid Level (3–7 yrs)</div>
+        <div class="salary-range">$180K–$260K</div>
+        <div class="salary-note">Production AI experience</div>
+      </div>
+      <div class="salary-card">
+        <div class="salary-level">Senior / Multi-Cloud Certified</div>
+        <div class="salary-range">$220K–$350K</div>
+        <div class="salary-note">3 clouds + agents + governance expertise</div>
+      </div>
+      <div class="salary-card">
+        <div class="salary-level">Principal Architect</div>
+        <div class="salary-range">$300K–$500K</div>
+        <div class="salary-note">10+ yrs · FAANG-level total comp</div>
+      </div>
+      <div class="salary-card">
+        <div class="salary-level">GenAI Specialist Premium</div>
+        <div class="salary-range">+20–30%</div>
+        <div class="salary-note">LLM + agents + RAG expertise premium over base</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ==============================
+     PROGRESS SETTINGS
+     ============================== -->
+<section class="section" id="section-settings">
+  <div class="container">
+    <div class="section-header">
+      <h2 class="section-title">⚙️ Progress & Settings</h2>
+    </div>
+    <div class="settings-panel">
+      <span class="settings-label">Backup or restore your learning progress, or start fresh.</span>
+      <button class="btn btn--outline" id="export-progress">📥 Export Progress</button>
+      <button class="btn btn--outline" id="import-progress">📤 Import Progress</button>
+      <button class="btn btn--danger" id="reset-progress">🗑 Reset All</button>
+    </div>
+
+    <div style="margin-top:1.5rem;padding:1.25rem;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);font-size:0.85rem;color:var(--text-secondary)">
+      <strong style="color:var(--text-primary)">🖥 Local Dev Server:</strong>
+      Open your terminal, navigate to this project folder, and run:
+      <code>python3 -m http.server 8080</code> then open
+      <a href="http://localhost:8080" target="_blank">localhost:8080</a>.
+      No build tools required — pure HTML/CSS/JS.
+      <br><br>
+      <strong style="color:var(--text-primary)">🚀 Deploy to GitHub Pages:</strong>
+      Push to a GitHub repo, go to Settings → Pages → Source: GitHub Actions. The included
+      <code>.github/workflows/deploy.yml</code> handles the rest automatically.
+    </div>
+  </div>
+</section>
+
+<!-- ==============================
+     FOOTER
+     ============================== -->
+<footer class="site-footer">
+  <div class="container">
+    <p>AI Architect Journey · 6-month learning path · Built for MacBook Pro ·
+      <a href="https://github.com" target="_blank">Deploy on GitHub Pages</a>
+    </p>
+    <p style="margin-top:0.5rem">
+      All certification links are official. Prices accurate as of 2025–2026.
+      Salary data from Robert Half, Glassdoor, and LinkedIn.
+    </p>
+  </div>
+</footer>
+
+<!-- ==============================
+     PROJECT DETAIL MODAL
+     ============================== -->
+<div class="modal-overlay" id="project-modal" role="dialog" aria-modal="true">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2 class="modal-title" id="modal-title">Project Details</h2>
+      <button class="modal-close" onclick="closeModal()" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-content" id="modal-body">
+      <!-- Rendered by app.js -->
+    </div>
+  </div>
+</div>
+
+<!-- ==============================
+     TOAST CONTAINER
+     ============================== -->
+<div id="toast-container" aria-live="polite"></div>
+
+<!-- ==============================
+     SCRIPTS (order matters)
+     ============================== -->
+<script src="assets/js/data.js"></script>
+<script src="assets/js/supabase-sync.js"></script>
+<script src="assets/js/store.js"></script>
+<script src="assets/js/gamification.js"></script>
+<script src="assets/js/filters.js"></script>
+<script src="assets/js/app.js"></script>
+
+<script>
+  function markGovernanceComplete() {
+    store.set('progress.governance_complete', true);
+    checkBadges();
+    awardXP(150, 'AI Governance & Compliance studied');
+  }
+</script>
+
+</body>
+</html>
